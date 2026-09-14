@@ -89,3 +89,16 @@ STEP 5: Return to automated background execution
 C:\Users\<YourUsername>\AppData\Roaming\ViberPCB\<YourPhoneNumber>\viber.db
 
 C:\Users\<User>\AppData\Roaming\ViberPCB\3069XXXXXXXX\viber.db
+
+New-Item -ItemType Directory -Force -Path "C:\athina_storage\raw"
+New-Item -ItemType Directory -Force -Path "C:\athina_storage\processed"
+New-Item -ItemType Directory -Force -Path "C:\athina_storage\dropzone"
+
+git clone <YOUR_REPO_URL> athina
+cd athina
+npm install
+
+npx prisma generate
+npm run build
+
+npx pm2 start ecosystem.config.cjs

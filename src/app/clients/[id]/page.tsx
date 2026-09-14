@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeletePatientButton } from "@/components/DeletePatientButton";
 import { DeleteReportButton } from "@/components/DeleteReportButton";
-import { ArrowLeft, ExternalLink, Calendar, Building2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, Building2, Phone, Hash } from "lucide-react";
 import { BiomarkerTrendChart } from "@/components/BiomarkerTrendChart";
 
 export default async function ClientDetailPage({
@@ -42,103 +42,173 @@ export default async function ClientDetailPage({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-10 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
+      {/* Sticky Top Navigation Bar */}
+      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-20 shadow-xs">
+        <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Patient Directory
+            <ArrowLeft className="w-4 h-4 text-slate-400" />
+            <span>Back to Directory</span>
           </Link>
-          <span className="font-mono text-xs text-slate-400">ID: {client.id}</span>
+          <div className="flex items-center gap-1.5 font-mono text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md">
+            <Hash className="w-3 h-3 text-slate-400" />
+            <span>{client.id}</span>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-       {/* Patient Profile Card */}
-<div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-wrap justify-between items-center gap-4">
-  <div>
-    <h1 className="text-2xl font-bold text-slate-900">{client.name}</h1>
-    <p className="text-sm text-slate-500 font-mono mt-1">Phone: {client.phone || "N/A"}</p>
-  </div>
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+        {/* Patient Profile Card */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100/80 flex items-center justify-center text-teal-700 font-bold text-2xl shadow-xs">
+              {client.name ? client.name.charAt(0).toUpperCase() : "P"}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                {client.name}
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-mono">
+                  <Phone className="w-3 h-3 text-slate-400" />
+                  {client.phone || "No phone listed"}
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-500">
+                  {client.testReports.length} {client.testReports.length === 1 ? "report" : "reports"} on file
+                </span>
+              </div>
+            </div>
+          </div>
 
-  {/* Purge Patient Action */}
-  <DeletePatientButton clientId={client.id} clientName={client.name} />
-</div>
+          <div className="self-end md:self-auto">
+            <DeletePatientButton clientId={client.id} clientName={client.name} />
+          </div>
+        </div>
 
         {/* Interactive Longitudinal Trendline */}
-        <BiomarkerTrendChart rawData={flatBiomarkers} />
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+          <h2 className="text-base font-bold text-slate-900 mb-4">Biomarker Longitudinal History</h2>
+          <BiomarkerTrendChart rawData={flatBiomarkers} />
+        </div>
 
         {/* Historical Slips */}
         <div className="space-y-6">
-          <h2 className="text-base font-bold text-slate-800">
-            Archived Test Reports ({client.testReports.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900">
+              Archived Diagnostic Reports ({client.testReports.length})
+            </h2>
+          </div>
 
-          {client.testReports.map((report) => (
-            <div
-              key={report.id}
-              className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
-            >
-              {/* Report Header */}
-              <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
-                <div className="flex items-center gap-4 text-xs text-slate-600 font-medium">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    {report.testDate ? new Date(report.testDate).toLocaleDateString() : "Date N/A"}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                    {report.labName || "Diagnostic Lab"}
-                  </span>
+          {client.testReports.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center text-slate-400 text-sm">
+              No lab reports registered for this patient yet.
+            </div>
+          ) : (
+            client.testReports.map((report) => (
+              <div
+                key={report.id}
+                className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden"
+              >
+                {/* Report Sub-Header */}
+                <div className="px-6 py-4 bg-slate-50/60 border-b border-slate-200/80 flex flex-wrap justify-between items-center gap-3">
+                  <div className="flex items-center gap-6 text-xs text-slate-600 font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      {report.testDate
+                        ? new Date(report.testDate).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "Date Unspecified"}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                      {report.labName || "Diagnostic Center"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`/api/media/${encodeURIComponent(report.filePath)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-300 transition shadow-xs"
+                    >
+                      <ExternalLink className="w-3 h-3 text-slate-500" /> Source Slip
+                    </a>
+                    <DeleteReportButton reportId={report.id} />
+                  </div>
                 </div>
 
-                {/* Unified Action Buttons */}
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`/api/media/${encodeURIComponent(report.filePath)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-md hover:bg-slate-50 transition shadow-sm"
-                  >
-                    <ExternalLink className="w-3 h-3" /> View Source File
-                  </a>
-                  <DeleteReportButton reportId={report.id} />
+                {/* Biomarkers Table */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-slate-200/80 text-sm text-left">
+                    <thead className="bg-slate-50/40 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                      <tr>
+                        <th className="px-6 py-3.5 text-left">Biomarker</th>
+                        <th className="px-6 py-3.5 text-right">Result</th>
+                        <th className="px-6 py-3.5 text-center">Reference Range</th>
+                        <th className="px-6 py-3.5 text-right">Evaluation</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {report.biomarkers.map((b) => {
+                        const isHigh = b.flag === "HIGH";
+                        const isLow = b.flag === "LOW";
+                        const isAlert = isHigh || isLow;
+
+                        return (
+                          <tr
+                            key={b.id}
+                            className={`transition-colors ${
+                              isAlert ? "bg-rose-50/25 hover:bg-rose-50/40" : "hover:bg-slate-50/60"
+                            }`}
+                          >
+                            <td className="px-6 py-3.5 font-medium text-slate-900">
+                              {b.name}
+                            </td>
+                            <td className={`px-6 py-3.5 text-right font-mono font-semibold tabular-nums ${
+                              isAlert ? "text-rose-600" : "text-slate-800"
+                            }`}>
+                              {b.value ?? b.valueString ?? "—"}
+                              {b.unit && (
+                                <span className="ml-1 text-xs text-slate-400 font-normal font-sans">
+                                  {b.unit}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-3.5 text-center font-mono text-xs text-slate-500 tabular-nums">
+                              {b.refLow !== null && b.refHigh !== null
+                                ? `${b.refLow} – ${b.refHigh}`
+                                : "—"}
+                            </td>
+                            <td className="px-6 py-3.5 text-right">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${
+                                  isHigh
+                                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                                    : isLow
+                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                }`}
+                              >
+                                {isHigh ? "HIGH ↑" : isLow ? "LOW ↓" : "NORMAL"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-
-              {/* Biomarkers Table */}
-              <table className="w-full text-left text-sm">
-                <thead className="text-[11px] text-slate-400 uppercase border-b border-slate-100">
-                  <tr>
-                    <th className="px-6 py-2.5">Biomarker</th>
-                    <th className="px-6 py-2.5">Value</th>
-                    <th className="px-6 py-2.5">Unit</th>
-                    <th className="px-6 py-2.5">Range</th>
-                    <th className="px-6 py-2.5">Flag</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {report.biomarkers.map((b) => (
-                    <tr key={b.id} className={b.flag !== "NORMAL" ? "bg-amber-50/50" : ""}>
-                      <td className="px-6 py-3 font-medium text-slate-800">{b.name}</td>
-                      <td className="px-6 py-3 font-bold text-slate-900">{b.value ?? b.valueString}</td>
-                      <td className="px-6 py-3 text-xs text-slate-500">{b.unit || "—"}</td>
-                      <td className="px-6 py-3 text-xs text-slate-500">
-                        {b.refLow !== null && b.refHigh !== null ? `${b.refLow} – ${b.refHigh}` : "—"}
-                      </td>
-                      <td className="px-6 py-3">
-                        {b.flag === "HIGH" && <span className="text-xs font-bold text-red-600">HIGH ↑</span>}
-                        {b.flag === "LOW" && <span className="text-xs font-bold text-blue-600">LOW ↓</span>}
-                        {b.flag === "NORMAL" && <span className="text-xs text-slate-500">Normal</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </main>
     </div>
