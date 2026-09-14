@@ -1,0 +1,91 @@
+======================================================================
+ATHINA CLINICAL VAULT - COMMAND QUICK REFERENCE CHEATSHEET
+Working Directory: D:\athina
+======================================================================
+
+1. DAY-TO-DAY MONITORING:
+   - Check status:            npx pm2 status
+   - Live stream logs:        npx pm2 logs
+   - WhatsApp-only logs:      npx pm2 logs athina-whatsapp
+   - Web console-only logs:   npx pm2 logs athina-web
+
+2. SERVICE LIFECYCLE:
+   - Start all:               npx pm2 start ecosystem.config.cjs
+   - Restart all:             npx pm2 restart all
+   - Stop all:                npx pm2 stop all
+   - Save for Windows reboot: npx pm2 save
+
+3. DATABASE (PRISMA / SQLITE):
+   - Open visual DB editor:   npx prisma studio   (opens at http://localhost:5555)
+   - Apply schema updates:    npx prisma db push
+   - Refresh TS types:        npx prisma generate
+
+4. BACKUP (MANUAL CMD):
+   - SQLite DB:
+     copy D:\athina\prisma\dev.db D:\athina_backups\dev_%date:~-4,4%%date:~-7,2%%date:~-10,2%.db
+   - Media folder:
+     xcopy D:\athina_storage\processed D:\athina_backups\processed /E /I /Y
+
+5. CODE UPDATES:
+   - Rebuild frontend:        npm run build
+   - Full pull & reload:      git pull && npm install && npm run build && npx pm2 restart all
+
+6. TROUBLESHOOTING:
+   - If WhatsApp logs out:
+     npx pm2 stop athina-whatsapp
+     node scripts/whatsapp-bridge.mjs
+     (Scan the new QR code in the terminal, then press Ctrl+C)
+     npx pm2 start athina-whatsapp
+======================================================================
+
+======================================================================
+7. HARD DRIVE MIGRATION & PORTABILITY NOTES
+======================================================================
+A. Assigning a Permanent Drive Letter on Target PC:
+   1. Connect external drive.
+   2. Press Win + X -> Disk Management.
+   3. Right-click drive -> "Change Drive Letter and Paths...".
+   4. Assign a fixed letter (e.g., D: or M:). Windows remembers this disk.
+
+B. Updating Path in .env (if drive letter changes):
+   Open D:\athina\.env and update MEDIA_STORAGE_PATH:
+   MEDIA_STORAGE_PATH="E:/athina_storage"
+
+C. Bulk Path Migration Query (if hardcoded paths need renaming in SQLite):
+   Open SQLite CLI or Prisma Studio and execute:
+   UPDATE TestReport SET filePath = REPLACE(filePath, 'D:\athina_storage', 'E:\athina_storage');
+   UPDATE Message    SET filePath = REPLACE(filePath, 'D:\athina_storage', 'E:\athina_storage');
+======================================================================
+
+======================================================================
+8. WHATSAPP RE-LINKING & QR CODE PAIRING PROCEDURE
+======================================================================
+Use these steps whenever the WhatsApp session expires, logs out,
+or when moving the installation to a new computer/phone.
+
+STEP 1: Stop the background service so it frees the session
+   cd /d D:\athina
+   npx pm2 stop athina-whatsapp
+
+STEP 2: Clear old session credentials (forces a fresh QR code)
+   Remove-Item -Recurse -Force whatsapp_auth_session
+
+STEP 3: Run the bridge in foreground mode to display the QR code
+   node scripts/whatsapp-bridge.mjs
+
+STEP 4: Scan from your phone
+   - Android: WhatsApp -> Three dots (top-right) -> Linked devices -> Link a device
+   - iPhone:  WhatsApp -> Settings (bottom-right) -> Linked devices -> Link a device
+   - Point your camera at the QR code displayed in the PowerShell terminal.
+
+STEP 5: Return to automated background execution
+   - Once you see: "WhatsApp Bridge active: monitoring and auto-analyzing incoming tests"
+   - Press Ctrl + C in the PowerShell window.
+   - Start the PM2 background process:
+     npx pm2 start athina-whatsapp
+     npx pm2 save
+======================================================================
+
+C:\Users\<YourUsername>\AppData\Roaming\ViberPCB\<YourPhoneNumber>\viber.db
+
+C:\Users\<User>\AppData\Roaming\ViberPCB\3069XXXXXXXX\viber.db

@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sensitive keys & local env
+.env
+.env*.local
+
+# WhatsApp session credentials & keys
+whatsapp_auth_session/
+
+# SQLite database & local storage
+dev.db
+dev.db-journal
+*.db
+*.db-journal
+
+# Patient files / archive
+D:/athina_storage
+athina_storage/

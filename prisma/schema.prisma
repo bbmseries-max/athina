@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id          String         @id @default(cuid())
+  name        String
+  phone       String?        @unique
+  email       String?        @unique
+  viberId     String?        @unique
+  metaId      String?        @unique
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  messages    Message[]
+  testReports TestReport[]
+
+  @@index([name])
+  @@index([updatedAt])
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  channel     String        // "whatsapp" | "viber" | "messenger" | "email"
+  rawText     String?
+  mediaType   String?       // "image" | "pdf" | "audio" | "none"
+  filePath    String?       // Absolute path on the external disk
+  timestamp   DateTime      @default(now())
+  testReports TestReport[]
+}
+
+model TestReport {
+  id          String        @id @default(cuid())
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  messageId   String?
+  message     Message?      @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  testDate    DateTime?
+  labName     String?
+  summary     String?
+  filePath    String
+  createdAt   DateTime      @default(now())
+  biomarkers  Biomarker[]
+}
+
+model Biomarker {
+  id           String     @id @default(cuid())
+  testReportId String
+  testReport   TestReport @relation(fields: [testReportId], references: [id], onDelete: Cascade)
+  name         String     // e.g., "Hemoglobin", "Ferritin", "TSH"
+  value        Float?     // Numeric value for comparison charts
+  valueString  String?    // Raw text fallback
+  unit         String?
+  refLow       Float?
+  refHigh      Float?
+  flag         String?    // "NORMAL" | "HIGH" | "LOW"
+}
+
+model DiscoveredChat {
+  id          String   @id @default(cuid())
+  jid         String   @unique // e.g. 306912345678@s.whatsapp.net
+  phone       String
+  name        String
+  unreadCount Int      @default(0)
+  hasMedia    Boolean  @default(false)
+  imported    Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
